@@ -1,40 +1,1753 @@
 <!doctype html>
-<html lang="en">
-	<head>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<html lang="en" xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-		<title>reveal.js</title>
+    <title>reveal.js</title>
 
-		<link rel="stylesheet" href="dist/reset.css">
-		<link rel="stylesheet" href="dist/reveal.css">
-		<link rel="stylesheet" href="dist/theme/black.css">
+    <link rel="stylesheet" href="dist/reset.css">
+    <link rel="stylesheet" href="dist/reveal.css">
+    <link rel="stylesheet" href="dist/theme/black.css">
 
-		<!-- Theme used for syntax highlighted code -->
-		<link rel="stylesheet" href="plugin/highlight/monokai.css">
-	</head>
-	<body>
-		<div class="reveal">
-			<div class="slides">
-				<section>Slide 1</section>
-				<section>Slide 2</section>
-			</div>
-		</div>
+    <!-- Theme used for syntax highlighted code -->
+    <link rel="stylesheet" href="plugin/highlight/monokai.css">
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js-plugins@latest/loadcontent/plugin.js"></script>
+    <!-- Animate plugin -->
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js-plugins@latest/animate/plugin.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/svg.js/3.1.2/svg.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.3.1/dist/reveal.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js-mermaid-plugin@2.3.0/plugin/mermaid/mermaid.js"></script>
+</head>
+<body>
+<div class="reveal">
+    <div class="slides">
+        <!-- Presentation Head -->
+        <section data-preload>
+            <h1 class="r-fit-text">Análisis sintáctico</h1>
+            <h2>Algoritmo CYK</h2>
+        </section>
+        <section>
+            <h2>Presentan</h2>
+            <ul>
+                <li>Luis Antonio Montoya Morales</li>
+                <li>Marco Uriel Torres Vargas</li>
+            </ul>
+        </section>
+        <section data-background-color="rgb(33,84,125)">
+            <section>
+                <h2 class="r-fit-text">Recordando...</h2>
+            </section>
+            <section>
+                <p>
+                    La gramática es el estudio de las reglas y principios
+                    <span class="fragment">que gobiernan el uso de las lenguas y organización de las palabras.</span>
+                </p>
+            </section>
+            <section>
+                <p>En el estudio del lenguaje existen 4 niveles</p>
+                <ol>
+                    <li>Fonético</li>
+                    <li>Morfológico</li>
+                    <li>Léxico o semántico</li>
+                    <li>Sintáctico</li>
+                </ol>
+            </section>
+            <section>
+                <p>Para lenguajes de programación solo compete conocer los últimos dos</p>
+            </section>
+            <section>
+                <h3>Nivel léxico</h3>
+                <p>Enfoque en la generación de vocabulario o palabras disponibles y su significado</p>
+            </section>
+            <section>
+                <h3>Nivel Sintáctico</h3>
+                <p>Enfoque en estructuras o combinaciones válidas de los constituyentes sintácticos ("oraciones"
+                    válidas)</p>
+            </section>
+            <section>
+                <h3 class="r-fit-text">Sobre los lenguajes de programación</h3>
+            </section>
+            <section>
+                <p>Un lenguaje de programación es una interfaz que permite la comunicación máquina - humano</p>
+            </section>
+            <section>
+                <p>Las estructuras sintácticas definen abstracciones para el acceso y uso de los recursos de la
+                    máquina</p>
+            </section>
+            <section>
+                <p>Las abstracciones de alto nivel pueden ser para
+                    <span class="fragment">construcción de funciones,</span>
+                    <span class="fragment"> generación de estructuras de datos como clases u prototipos</span>
+                    <span class="fragment">o declaración de variables</span>
+                </p>
+            </section>
+            <section>
+                <p>La sintáctica de un lenguaje de programación es construida a partir de una gramática libre de
+                    contexto</p>
+            </section>
+            <section>
+                <h3>Sobre las gramática libre de contexto</h3>
+            </section>
+            <section>
+                La gramática libre de contexto (CFG) se define por una 4-tupla
+            </section>
+            <section>
+                \[G=(V_t, V_n, P, S)\]
+                <p class="fragment">$V_t$ es un conjunto finito de terminales</p>
+                <p class="fragment">$V_n$ es un conjunto de no terminales</p>
+                <p class="fragment">$P$ es un conjunto de producciones</p>
+                <p class="fragment">$S$ es el símbolo inicial y se encuentra dentro del conjunto de $V_t$</p>
+            </section>
+        </section>
+        <section>
+            <h2 class="r-fit-text">Analizador sintáctico</h2>
+            <h3>Su lugar en el compilador...</h3>
+        </section>
+        <section>
+            <div class="stretch"
+                 style="display: flex; flex-direction: row; width: 100%; align-items: center; gap: 20px;">
+                <div data-animate data-load="diagram.svg">
+                    <!--
+                    { "setup": [
+                    { "element": "#source-code", "modifier": "attr", "parameters": [ {"class": "fragment fade-right", "data-fragment-index": "0"} ] },
+                    { "element": "#lexical", "modifier": "attr", "parameters": [ {"class": "fragment", "data-fragment-index": "1"} ] },
+                    { "element": "#token", "modifier": "attr", "parameters": [ {"class": "fragment fade-right", "data-fragment-index": "2"} ] },
+                    { "element": "#arrow-source-code", "modifier": "attr", "parameters": [ {"class": "fragment fade-left", "data-fragment-index": "2"} ] },
+                    { "element": "#sintaxis", "modifier": "attr", "parameters": [ {"class": "fragment", "data-fragment-index": "3"} ] },
+                    { "element": "#tree", "modifier": "attr", "parameters": [ {"class": "fragment fade-right", "data-fragment-index": "4"} ] },
+                    { "element": "#middle", "modifier": "attr", "parameters": [ {"class": "fragment", "data-fragment-index": "5"} ] },
+                    { "element": "#front", "modifier": "attr", "parameters": [ {"class": "fragment fade-right", "data-fragment-index": "5"} ] }
+                    ]}
+                    -->
+                </div>
+                <div style="font-size: 16px; text-align: left; flex-basis: 33%">
+                    <p class="fragment" data-fragment-index="0">Obtenemos el código fuente</p>
+                    <p class="fragment" data-fragment-index="1">El analizador lexico verifica que todas las cadenas
+                        pertenezcan al vocabulario del lenguaje</p>
+                    <p class="fragment" data-fragment-index="2">Las cadenas se convierten en tokens</p>
+                    <p class="fragment" data-fragment-index="3">Se obtiene procesa una cadena de tokens verificando que
+                        las combinaciones sean correctas</p>
+                    <p class="fragment" data-fragment-index="4">Se obtiene un árbol de sintaxis</p>
+                    <p class="fragment" data-fragment-index="5">Se ha preparado la información para las siguientes fases
+                        del frontend</p>
+                </div>
+            </div>
+        </section>
+        <section>
+            <p>Existen 3 tipos de analizadores de gramáticas:</p>
+            <ul>
+                <li class="fragment">Universales</li>
+                <li class="fragment">Ascendentes</li>
+                <li class="fragment">Descendentes</li>
+            </ul>
+            <p class="fragment">Como analizadores universales se encuentran los algoritmos <span
+                    class="fragment highlight-red"><b>Cocke-Younger-Kasami</b></span> y <span
+                    class="fragment highlight-red"><b>Earley</b></span></p>
+        </section>
+        <section>
+            <h3 class="r-fit-text">Algoritmo CYK (Cocke-Younger-Kasami)</h3>
+        </section>
+        <section>
+            <p class="fragment" style="text-align: left">El algoritmo CYK es un algoritmo de análisis sintáctico que
+                verifica si una cadena
+                pertenece a una
+                gramática libre de contexto</p>
+            <p class="fragment" style="text-align: right">Es un ineficiente con respecto a los algoritmos ascendente y
+                descendente, aunque... <span class="fragment"><span
+                        class="fragment highlight-green">es un buen punto de partida didáctico para entender el funcionamiento de los analizadores sintácticos</span>
+            </span></p>
+        </section>
+        <section>
+            <section>
+                <h3>¿Cómo funciona?</h3>
+            </section>
+            <section>
+                <p class="fragment">El algoritmo CYK se basa en la programación dinámica</p>
+                <p class="fragment">Requiere que la gramática se encuentre en la forma normal de Chomsky (CNF)</p>
+                <p class="fragment">Genera una tabla \(T\) de \(N\times N\)</p>
+                <p class="fragment">Cada entrada \(T[i,j]\) es el conjunto de que producen la subcadena</p>
+                <p class="fragment"><b class="fragment highlight-red">Si \(T[1,5]\) contiene algún símbolo productor
+                    inicial, la cadena pertenece al lenguaje</b></p>
+            </section>
+            <section>
+                <h4>¿Cómo llenar la tabla?</h4>
+                <section>
+                    <ol>
+                        <li class="fragment">Las columnas indican el token encontrado</li>
+                        <li class="fragment">Se comienza de abajo hacia arriba</li>
+                        <li class="fragment">Cada celda es una variable que contiene un conjunto \(x_{i,j}\)</li>
+                        <li class="fragment">Si el token es parte de una producción se introduce en la variable dicho
+                            símbolo productor
+                        </li>
+                        <li class="fragment">Se comparan las parejas previamente calculadas (producto cartesiano)
+                            \((x_{i,i},x_{i+1,j}),(x_{i,i+1},x_{i+2,j}),...,(x_{i,j-1},x_{i,j})\)
+                        </li>
+                    </ol>
+                </section>
+            </section>
+            <section>
+                <table>
+                    <tr>
+                        <td>\(x_{1,5}\)</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>\(x_{1,4}\)</td>
+                        <td>\(x_{2,5}\)</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>\(x_{1,3}\)</td>
+                        <td>\(x_{2,4}\)</td>
+                        <td>\(x_{3,5}\)</td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>\(x_{1,2}\)</td>
+                        <td>\(x_{2,3}\)</td>
+                        <td>\(x_{3,4}\)</td>
+                        <td>\(x_{4,5}\)</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>\(x_{1,1}\)</td>
+                        <td>\(x_{2,2}\)</td>
+                        <td>\(x_{3,3}\)</td>
+                        <td>\(x_{4,4}\)</td>
+                        <td>\(x_{5,5}\)</td>
+                    </tr>
+                    <tr>
+                        <th>\(w_{1}\)</th>
+                        <th>\(w_{2}\)</th>
+                        <th>\(w_{3}\)</th>
+                        <th>\(w_{4}\)</th>
+                        <th>\(w_{5}\)</th>
+                    </tr>
+                </table>
+                <blockquote>
+                    <p> \(w_{j}\) es la cadena o token</p>
+                </blockquote>
+            </section>
+        </section>
+        <section>
+            <h3>Ejemplo</h3>
+        </section>
+        <section>
+            <h3 class="r-fit-text">Considere la siguiente gramática CNF</h3>
+            <div style="text-align: left">
+                \(NP\rightarrow Det | Nom\\
+                Nom\rightarrow AP|Nom\\
+                Nom\rightarrow book|orange|man\\
+                AP\rightarrow Adv|A\\
+                AP\rightarrow heavy|orange|tall\\
+                Det\rightarrow a|an\\
+                Adv\rightarrow very|extremely\\
+                A\rightarrow heavy|orange|tall|muscular\\\)
+            </div>
+            <blockquote>
+                \(NP\) es el símbolo inicial
+            </blockquote>
+        </section>
+        <section>
+            <p>Supongamos una cadena</p>
+            <p class="fragment"><b style="opacity: 0.6;">
+                <span class="fragment highlight-current-blue">a</span>
+                <span class="fragment highlight-current-blue">very</span>
+                <span class="fragment highlight-current-blue">heavy</span>
+                <span class="fragment highlight-current-blue">orange</span>
+                <span class="fragment highlight-current-blue">book</span>
+            </b></p>
+            <p>Esta sería devuelta por el analizador léxico...</p>
+        </section>
+        <section>
+            <p>Los tokens devueltos serían</p>
+            <ol>
+                <li class="fragment" data-fragment-index="0">a</li>
+                <li class="fragment" data-fragment-index="1">very</li>
+                <li class="fragment" data-fragment-index="2">heavy</li>
+                <li class="fragment" data-fragment-index="3">orange</li>
+                <li class="fragment" data-fragment-index="4">book</li>
+            </ol>
+        </section>
+        <section data-auto-animate>
+            <p>De esta forma se construye la tabla \(T\)</p>
+            <table data-id="tab">
+                <tr data-id="tab1">
+                    <td data-id="tab11">-</td>
+                    <td data-id="tab12">-</td>
+                    <td data-id="tab13">-</td>
+                    <td data-id="tab14">-</td>
+                    <td data-id="tab15">-</td>
+                </tr>
+                <tr data-id="tab2">
+                    <td data-id="tab21">-</td>
+                    <td data-id="tab22">-</td>
+                    <td data-id="tab23">-</td>
+                    <td data-id="tab24">-</td>
+                    <td data-id="tab25">-</td>
+                </tr>
+                <tr data-id="tab3">
+                    <td data-id="31">-</td>
+                    <td data-id="32">-</td>
+                    <td data-id="33">-</td>
+                    <td data-id="34">-</td>
+                    <td data-id="35">-</td>
+                </tr>
+                <tr data-id="tab4">
+                    <td data-id="41">-</td>
+                    <td data-id="42">-</td>
+                    <td data-id="43">-</td>
+                    <td data-id="44">-</td>
+                    <td data-id="45">-</td>
+                </tr>
+                <tr data-id="tab5">
+                    <td data-id="tab51">-</td>
+                    <td data-id="tab52">-</td>
+                    <td data-id="tab53">-</td>
+                    <td data-id="tab54">-</td>
+                    <td data-id="tab55">-</td>
+                </tr>
+                <tr data-id="tabh">
+                    <th data-id="tabh1">\(a\)</th>
+                    <th data-id="tabh2">\(very\)</th>
+                    <th data-id="tabh3">\(heavy\)</th>
+                    <th data-id="tabh3">\(orange\)</th>
+                    <th data-id="tabh5">\(book\)</th>
+                </tr>
+            </table>
+        </section>
+        <section data-auto-animate>
+            <p>Comenzamos con la primera fila, se verifica que producciones generan el token</p>
+            <table data-id="tab">
+                <tr data-id="tab1">
+                    <td data-id="tab11">-</td>
+                    <td data-id="tab12">-</td>
+                    <td data-id="tab13">-</td>
+                    <td data-id="tab14">-</td>
+                    <td data-id="tab15">-</td>
+                </tr>
+                <tr data-id="tab2">
+                    <td data-id="tab21">-</td>
+                    <td data-id="tab22">-</td>
+                    <td data-id="tab23">-</td>
+                    <td data-id="tab24">-</td>
+                    <td data-id="tab25">-</td>
+                </tr>
+                <tr data-id="tab3">
+                    <td data-id="31">-</td>
+                    <td data-id="32">-</td>
+                    <td data-id="33">-</td>
+                    <td data-id="34">-</td>
+                    <td data-id="35">-</td>
+                </tr>
+                <tr data-id="tab4">
+                    <td data-id="41">-</td>
+                    <td data-id="42">-</td>
+                    <td data-id="43">-</td>
+                    <td data-id="44">-</td>
+                    <td data-id="45">-</td>
+                </tr>
+                <tr data-id="tab5">
+                    <td data-id="tab51">\(Det\)</td>
+                    <td data-id="tab52">\(Adv\)</td>
+                    <td data-id="tab53">\(A,AP\)</td>
+                    <td data-id="tab54">\(Nom,A,AP\)</td>
+                    <td data-id="tab55">\(Nom\)</td>
+                </tr>
+                <tr data-id="tabh">
+                    <th data-id="tabh1">\(a\)</th>
+                    <th data-id="tabh2">\(very\)</th>
+                    <th data-id="tabh3">\(heavy\)</th>
+                    <th data-id="tabh3">\(orange\)</th>
+                    <th data-id="tabh5">\(book\)</th>
+                </tr>
+            </table>
+        </section>
+        <section>
+            <section>
+                <p>Siguiendo con la segunda fila...</p>
+            </section>
+            <section data-auto-animate>
+                <p class="fragment" style="text-align: left">Comenzando con la primera columna obtenemos que se revisa
+                    la
+                    celda \(x_{1,2}\), por lo tanto...</p>
+                <p class="fragment">\((x_{i,i},x_{i+1,j})=(x_{1,1},x_{2,2})\)</p>
+                <p class="fragment">No se consideran otras ya que no existen dichas celdas.</p>
+                <p class="fragment">\[\{Det\}\times\{Adv\}=\{Det\text{ }Adv\}\]</p>
+                <p class="fragment">De las reglas de la gramática no exista una producción que genere \(Det\text{
+                    }Adv\)</p>
+            </section>
+            <section>
+                <p class="fragment" style="text-align: left">Siguiendo con la segunda columna obtenemos que se revisa la
+                    celda \(x_{2,3}\), por lo tanto...</p>
+                <p class="fragment">\((x_{i,i},x_{i+1,j})=(x_{2,2},x_{3,3})\)</p>
+                <p class="fragment">\[\{Adv\}\times\{A,AP\}=\{Adv\text{ }A,Adv\text{ }AP\}\]</p>
+                <p class="fragment">De la reglas de la gramática la producción que genera \(Adv\text{
+                    }A\) es \(AP\).</p>
+            </section>
+            <section>
+                <p class="fragment" style="text-align: left">Siguiendo con la tercera columna obtenemos la celda
+                    \(x_{3,4}\), por lo tanto...</p>
+                <p class="fragment">\((x_{i,i},x_{i+1,j})=(x_{3,3},x_{4,4})\)</p>
+                <p class="fragment r-fit-text">\[\{A, AP\}\times\{A,AP,Nom\}=\{A\text{ }A, A\text{ }AP, A\text{ }Nom,
+                    AP\text{ }A, AP\text{ }AP, AP\text{ }Nom\}\]</p>
+                <p class="fragment">De la reglas de la gramática \(AP\text{ }Nom\) es producida por \(Nom\).</p>
+            </section>
+            <section>
+                <p class="fragment" style="text-align: left">Siguiendo con la cuarta columna obtenemos la celda
+                    \(x_{4,5}\), por lo tanto...</p>
+                <p class="fragment">\((x_{i,i},x_{i+1,j})=(x_{4,4},x_{5,5})\)</p>
+                <p class="fragment r-fit-text">\[\{A, AP, Nom\}\times\{Nom\}=\{A\text{ }Nom,AP\text{ }Nom, Nom\text{
+                    }Nom\}\]</p>
+                <p class="fragment">De la reglas de la gramática \(AP\text{ }Nom\) es producida por \(Nom\).</p>
+            </section>
+        </section>
+        <section>
+            <p>Obtenemos</p>
+            <table data-id="tab">
+                <tr data-id="tab1">
+                    <td data-id="tab11">-</td>
+                    <td data-id="tab12">-</td>
+                    <td data-id="tab13">-</td>
+                    <td data-id="tab14">-</td>
+                    <td data-id="tab15">-</td>
+                </tr>
+                <tr data-id="tab2">
+                    <td data-id="tab21">-</td>
+                    <td data-id="tab22">-</td>
+                    <td data-id="tab23">-</td>
+                    <td data-id="tab24">-</td>
+                    <td data-id="tab25">-</td>
+                </tr>
+                <tr data-id="tab3">
+                    <td data-id="31">-</td>
+                    <td data-id="32">-</td>
+                    <td data-id="33">-</td>
+                    <td data-id="34">-</td>
+                    <td data-id="35">-</td>
+                </tr>
+                <tr data-id="tab4">
+                    <td data-id="41">\(-\)</td>
+                    <td data-id="42">\(AP\)</td>
+                    <td data-id="43">\(Nom\)</td>
+                    <td data-id="44">\(Nom\)</td>
+                    <td data-id="45"></td>
+                </tr>
+                <tr data-id="tab5">
+                    <td data-id="tab51">\(Det\)</td>
+                    <td data-id="tab52">\(Adv\)</td>
+                    <td data-id="tab53">\(A,AP\)</td>
+                    <td data-id="tab54">\(Nom,A,AP\)</td>
+                    <td data-id="tab55">\(Nom\)</td>
+                </tr>
+                <tr data-id="tabh">
+                    <th data-id="tabh1">\(a\)</th>
+                    <th data-id="tabh2">\(very\)</th>
+                    <th data-id="tabh3">\(heavy\)</th>
+                    <th data-id="tabh3">\(orange\)</th>
+                    <th data-id="tabh5">\(book\)</th>
+                </tr>
+            </table>
+        </section>
+        <section>
+            <section>
+                <h3>Siguiendo con la tercera fila...</h3>
+            </section>
+            <section>
+                <p class="fragment" style="text-align: left">Comenzando con la primera columna obtenemos que se revisa
+                    la
+                    celda \(x_{1,3}\), por lo tanto...</p>
+                <p class="fragment r-fit-text">
+                    \((x_{i,i},x_{i+1,j}),(x_{i,i+1},x_{i+2,j})=(x_{1,1},x_{2,3}),(x_{1,2},x_{3,3})\)</p>
+                <p class="fragment r-fit-text">\[\{Det\}\times\{AP\}\bigcup\{\empty\}\times\{A,AP\}=\{Det\text{
+                    }AP\}\]</p>
+                <p class="fragment">De las reglas de la gramática no exista una producción que genere \(Det\text{
+                    }AP\)</p>
+            </section>
+            <section>
+                <p class="fragment" style="text-align: left">Siguiendo con la segunda columna obtenemos que se revisa la
+                    celda \(x_{2,4}\), por lo tanto...</p>
+                <p class="fragment r-fit-text">
+                    \((x_{i,i},x_{i+1,j}),(x_{i,i+1},x_{i+2,j})=(x_{2,2},x_{3,4}),(x_{2,3},x_{4,4})\)</p>
+                <p class="fragment r-fit-text">\[\{Adv\}\times\{Nom\}\bigcup\{AP\}\times\{Nom,A,AP\}=\{Adv\text{
+                    }Nom,AP\text{ }Nom, AP\text{ }A, AP\text{ }AP\}\]</p>
+                <p class="fragment">De las reglas de la gramática \(Nom\) es productora de \(AP\text{ } Nom\).</p>
+            </section>
+            <section>
+                <p class="fragment" style="text-align: left">Siguiendo con la tercera columna obtenemos que se revisa la
+                    celda \(x_{3,5}\), por lo tanto...</p>
+                <p class="fragment r-fit-text">
+                    \((x_{i,i},x_{i+1,j}),(x_{i,i+1},x_{i+2,j})=(x_{3,3},x_{4,5}),(x_{3,4},x_{5,5})\)</p>
+                <p class="fragment r-fit-text">\[\{A,AP\}\times\{Nom\}\bigcup\{Nom\}\times\{Nom\}=\{A\text{
+                    }Nom,AP\text{ }Nom, Nom\text{ }Nom\}\]</p>
+                <p class="fragment">De las reglas de la gramática \(Nom\) es productora de \(AP\text{ } Nom\).</p>
+            </section>
+        </section>
+        <section data-auto-animate>
+            <p>Obtenemos</p>
+            <table data-id="tab">
+                <tr data-id="tab1">
+                    <td data-id="tab11">-</td>
+                    <td data-id="tab12">-</td>
+                    <td data-id="tab13">-</td>
+                    <td data-id="tab14">-</td>
+                    <td data-id="tab15">-</td>
+                </tr>
+                <tr data-id="tab2">
+                    <td data-id="tab21">-</td>
+                    <td data-id="tab22">-</td>
+                    <td data-id="tab23">-</td>
+                    <td data-id="tab24">-</td>
+                    <td data-id="tab25">-</td>
+                </tr>
+                <tr data-id="tab3">
+                    <td data-id="31">\(-\)</td>
+                    <td data-id="32">\(Nom\)</td>
+                    <td data-id="33">\(Nom\)</td>
+                    <td data-id="34"></td>
+                    <td data-id="35"></td>
+                </tr>
+                <tr data-id="tab4">
+                    <td data-id="41">\(-\)</td>
+                    <td data-id="42">\(AP\)</td>
+                    <td data-id="43">\(Nom\)</td>
+                    <td data-id="44">\(Nom\)</td>
+                    <td data-id="45"></td>
+                </tr>
+                <tr data-id="tab5">
+                    <td data-id="tab51">\(Det\)</td>
+                    <td data-id="tab52">\(Adv\)</td>
+                    <td data-id="tab53">\(A,AP\)</td>
+                    <td data-id="tab54">\(Nom,A,AP\)</td>
+                    <td data-id="tab55">\(Nom\)</td>
+                </tr>
+                <tr data-id="tabh">
+                    <th data-id="tabh1">\(a\)</th>
+                    <th data-id="tabh2">\(very\)</th>
+                    <th data-id="tabh3">\(heavy\)</th>
+                    <th data-id="tabh3">\(orange\)</th>
+                    <th data-id="tabh5">\(book\)</th>
+                </tr>
+            </table>
+        </section>
+        <section data-auto-animate>
+            <p>Siguiendo con el patron del algoritmo</p>
+            <table data-id="tab">
+                <tr data-id="tab1">
+                    <td data-id="tab11">\(NP\)</td>
+                    <td data-id="tab12"></td>
+                    <td data-id="tab13"></td>
+                    <td data-id="tab14"></td>
+                    <td data-id="tab15"></td>
+                </tr>
+                <tr data-id="tab2">
+                    <td data-id="tab21">\(NP\)</td>
+                    <td data-id="tab22">\(Nom\)</td>
+                    <td data-id="tab23"></td>
+                    <td data-id="tab24"></td>
+                    <td data-id="tab25"></td>
+                </tr>
+                <tr data-id="tab3">
+                    <td data-id="31">\(-\)</td>
+                    <td data-id="32">\(Nom\)</td>
+                    <td data-id="33">\(Nom\)</td>
+                    <td data-id="34"></td>
+                    <td data-id="35"></td>
+                </tr>
+                <tr data-id="tab4">
+                    <td data-id="41">\(-\)</td>
+                    <td data-id="42">\(AP\)</td>
+                    <td data-id="43">\(Nom\)</td>
+                    <td data-id="44">\(Nom\)</td>
+                    <td data-id="45"></td>
+                </tr>
+                <tr data-id="tab5">
+                    <td data-id="tab51">\(Det\)</td>
+                    <td data-id="tab52">\(Adv\)</td>
+                    <td data-id="tab53">\(A,AP\)</td>
+                    <td data-id="tab54">\(Nom,A,AP\)</td>
+                    <td data-id="tab55">\(Nom\)</td>
+                </tr>
+                <tr data-id="tabh">
+                    <th data-id="tabh1">\(a\)</th>
+                    <th data-id="tabh2">\(very\)</th>
+                    <th data-id="tabh3">\(heavy\)</th>
+                    <th data-id="tabh3">\(orange\)</th>
+                    <th data-id="tabh5">\(book\)</th>
+                </tr>
+            </table>
+        </section>
+        <section>
+            <p>Como \(T[1,5]\) contiene un símbolo inicial, decimos que la cadena <em class="fragment highlight-red"
+                                                                                      style="opacity: 0.7;">a
+                very heavy
+                orange book</em> <em class="fragment">pertenece a la gramática</em></p>
+        </section>
+        <section data-auto-animate>
+            <h3>El árbol sintáctico construido...</h3>
+            <div>
 
-		<script src="dist/reveal.js"></script>
-		<script src="plugin/notes/notes.js"></script>
-		<script src="plugin/markdown/markdown.js"></script>
-		<script src="plugin/highlight/highlight.js"></script>
-		<script>
-			// More info about initialization & config:
-			// - https://revealjs.com/initialization/
-			// - https://revealjs.com/config/
-			Reveal.initialize({
-				hash: true,
+                <div>
+                    <table data-id="tab">
+                        <tr data-id="tab1">
+                            <td data-id="tab11">\(NP\)</td>
+                            <td data-id="tab12"></td>
+                            <td data-id="tab13"></td>
+                            <td data-id="tab14"></td>
+                            <td data-id="tab15"></td>
+                        </tr>
+                        <tr data-id="tab2">
+                            <td data-id="tab21">\(NP\)</td>
+                            <td data-id="tab22">\(Nom\)</td>
+                            <td data-id="tab23"></td>
+                            <td data-id="tab24"></td>
+                            <td data-id="tab25"></td>
+                        </tr>
+                        <tr data-id="tab3">
+                            <td data-id="31">\(-\)</td>
+                            <td data-id="32">\(Nom\)</td>
+                            <td data-id="33">\(Nom\)</td>
+                            <td data-id="34"></td>
+                            <td data-id="35"></td>
+                        </tr>
+                        <tr data-id="tab4">
+                            <td data-id="41">\(-\)</td>
+                            <td data-id="42">\(AP\)</td>
+                            <td data-id="43">\(Nom\)</td>
+                            <td data-id="44">\(Nom\)</td>
+                            <td data-id="45"></td>
+                        </tr>
+                        <tr data-id="tab5">
+                            <td data-id="tab51">\(Det\)</td>
+                            <td data-id="tab52">\(Adv\)</td>
+                            <td data-id="tab53">\(A,AP\)</td>
+                            <td data-id="tab54">\(Nom,A,AP\)</td>
+                            <td data-id="tab55">\(Nom\)</td>
+                        </tr>
+                        <tr data-id="tabh">
+                            <th data-id="tabh1">\(a\)</th>
+                            <th data-id="tabh2">\(very\)</th>
+                            <th data-id="tabh3">\(heavy\)</th>
+                            <th data-id="tabh3">\(orange\)</th>
+                            <th data-id="tabh5">\(book\)</th>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </section>
+        <section data-auto-animate>
+            <h3>El árbol sintáctico construido...</h3>
+            <div class="mermaid">
+                <pre>
+                    %%{init: {'theme': 'dark', 'themeVariables': { 'darkMode': true }}}%%
+                    flowchart LR
+                    id1[NP]
+                    id2[Det]
+                    id3[a]
+                    id4[Nom]
+                    id5[AP]
+                    id6[Adv]
+                    id7[A]
+                    id8[very]
+                    id9[heavy]
+                    id10[Nom]
+                    id11[AP]
+                    id12[Nom]
+                    id13[orange]
+                    id14[book]
+                    
+                    id1-->id2
+                    id1-->id4
+                    id2-->id3
+                    id4-->id5
+                    id5-->id6
+                    id6-->id8
+                    id5-->id7
+                    id7-->id9
+                    id4-->id10
+                    id10-->id11
+                    id10-->id12
+                    id11-->id13
+                    id12-->id14
+                </pre>
+            </div>
+        </section>
+        <section>
+            <h2>Ejemplo de implementación</h2>
+        </section>
+        <section data-auto-animate>
+            <p>Importamos lo necesario...</p>
+            <pre class="code-wrapper" data-id="code">
+                <code data-line-numbers>import java.util.*;
+                </code>
+            </pre>
+            <p class="fragment">Solo requerimos manipular Mapas de Hash</p>
+        </section>
+        <section data-auto-animate>
+            <p>Partimos desde la clásica función <code style="display: inline-block; padding: 1px 5px; background: rgba(210,210,180,0.5); border-radius: 10px">main</code></p>
+            <pre class="code-wrapper" data-id="code">
+                <code data-line-numbers><script type="text/template">import java.util.*;
+public class SintaxisAnalyzer {
+    public static void main(String[] args) {
+        
+    }
+}
+                </script></code>
+            </pre>
+        </section>
+        <section data-auto-animate>
+            <p>Requerimos definir nuestros tokens</p>
+            <p class="fragment">Para ello definimos los tokens posibles en un <code style="display: inline-block; padding: 1px 5px; background: rgba(210,210,180,0.5); border-radius: 10px">enum</code></p>
+            <pre class="code-wrapper" data-id="code">
+                <code data-line-numbers="|8-11"><script type="text/template">import java.util.*;
+public class SintaxisAnalyzer {
+    public static void main(String[] args) {
+        
+    }
+}
 
-				// Learn about plugins: https://revealjs.com/plugins/
-				plugins: [ RevealMarkdown, RevealHighlight, RevealNotes ]
-			});
-		</script>
-	</body>
+enum Token{
+    A, AN, VERY, EXTREMELY, HEAVY, ORANGE, 
+    TALL, MUSCULAR, MAN, BOOK
+}
+                </script>script></code>
+            </pre>
+        </section>
+        <section data-auto-animate>
+            <p>Definamos la lectura de alguna cadena de texto para convertirla a tokens</p>
+            <pre class="code-wrapper" data-id="code">
+                <code data-line-numbers="4|5-12"><script type="text/template">import java.util.*;
+public class SintaxisAnalyzer {
+    public static void main(String[] args) {
+        List<Token> tokenString;
+        try{
+            tokenString = LexicalAnalyzer.tokenize(args[0]);
+        } catch( LexicalException e ){
+            System.out.println(e.getMessage());
+            return;
+        }
+    }
+}
+
+public enum Token{
+    A, AN, VERY, EXTREMELY, HEAVY, ORANGE, 
+    TALL, MUSCULAR, MAN, BOOK
+}
+                </script></code>
+            </pre>
+            <p class="fragment">Require un analizador léxico</p>
+        </section>
+        <section data-auto-animate>
+            <p>Ahora especifiquemos lo necesario para el analizador</p>
+            <pre class="code-wrapper" data-id="code">
+                <code data-line-numbers=""><script type="text/template">import java.util.*;
+public class SintaxisAnalyzer {
+    public static void main(String[] args) {
+        List<Token> tokenString;
+        try{
+            tokenString = LexicalAnalyzer.tokenize(args[0]);
+        } catch( LexicalException e ){
+            System.out.println(e.getMessage());
+            return;
+        }
+    }
+}
+
+public enum Token{
+    A, AN, VERY, EXTREMELY, HEAVY, ORANGE, 
+    TALL, MUSCULAR, MAN, BOOK
+}
+                </script></code>
+            </pre>
+        </section>
+        <section data-auto-animate>
+            <p>Requerimos especificar el árbol, para ello definamos los tokens productores</p>
+            <pre class="code-wrapper" data-id="code">
+                <code data-line-numbers="17"><script type="text/template">import java.util.*;
+public class SintaxisAnalyzer {
+    public static void main(String[] args) {
+        List<Token> tokenString;
+        try{
+            tokenString = LexicalAnalyzer.tokenize(args[0]);
+        } catch( LexicalException e ){
+            System.out.println(e.getMessage());
+            return;
+        }
+    }
+}
+
+public enum Token{
+    A, AN, VERY, EXTREMELY, HEAVY, ORANGE, 
+    TALL, MUSCULAR, MAN, BOOK,
+    NP, NOM, DET, AP, ADV, _A
+}
+                </script></code>
+            </pre>
+        </section>
+        <section data-auto-animate>
+            <p>Seguido de la estructura del árbol</p>
+            <pre class="code-wrapper" data-id="code">
+                <code data-line-numbers=""><script type="text/template">import java.util.*;
+public class SintaxisAnalyzer {
+    static List<Token> terminals =  Arrays.asList(
+                                Token.BOOK, Token.ORANGE, 
+                                Token.MAN, Token.TALL, 
+                                Token.HEAVY, Token.VERY, 
+                                Token.MUSCULAR
+                            );
+    static List<Token> nonTerminals = Arrays.asList(
+                                Token.NP, Token.NOM, 
+                                Token.DET, Token.AP, 
+                                Token.ADV, Token._A
+                            );
+    static Map<Token, List<List<Token>>> R = new HashMap<>();
+    public static void main(String[] args) {
+        List<Token> tokenString;
+        try{
+            tokenString = LexicalAnalyzer.analyze(args[0]);
+        } catch( LexicalException e ){
+            System.out.println(e.getMessage());
+            return;
+        }
+    }
+}
+
+public enum LangToken{
+    A, AN, VERY, EXTREMELY, HEAVY, ORANGE, 
+    TALL, MUSCULAR, MAN, BOOK,
+    NP, NOM, DET, AP, ADV, _A
+}
+                        </script></code>
+            </pre>
+        </section>
+        <section data-auto-animate>
+            <p class="">Indica que tokens son propios del lenguaje (símbolos terminales)</p>
+            <pre class="code-wrapper" data-id="code">
+                <code data-line-numbers="3-8|"><script type="text/template">import java.util.*;
+public class SintaxisAnalyzer {
+    static List<Token> terminals =  Arrays.asList(
+                                Token.BOOK, Token.ORANGE, 
+                                Token.MAN, Token.TALL, 
+                                Token.HEAVY, Token.VERY, 
+                                Token.MUSCULAR
+                            );
+    static List<Token> nonTerminals = Arrays.asList(
+                                Token.NP, Token.NOM, 
+                                Token.DET, Token.AP, 
+                                Token.ADV, Token._A
+                            );
+    static Map<Token, List<List<Token>>> R = new HashMap<>();
+    public static void main(String[] args) {
+        List<Token> tokenString;
+        try{
+            tokenString = LexicalAnalyzer.analyze(args[0]);
+        } catch( LexicalException e ){
+            System.out.println(e.getMessage());
+            return;
+        }
+    }
+}
+
+public enum LangToken{
+    A, AN, VERY, EXTREMELY, HEAVY, ORANGE, 
+    TALL, MUSCULAR, MAN, BOOK,
+    NP, NOM, DET, AP, ADV, _A
+}
+                        </script></code>
+            </pre>
+        </section>
+        <section data-auto-animate>
+            <p class="fragment fade-out">Indica que tokens son productores (símbolos no terminales)</p>
+            <pre class="code-wrapper" data-id="code">
+                <code data-line-numbers="9-13|14"><script type="text/template">import java.util.*;
+public class SintaxisAnalyzer {
+    static List<Token> terminals =  Arrays.asList(
+                            Token.BOOK, Token.ORANGE, 
+                            Token.MAN, Token.TALL, 
+                            Token.HEAVY, Token.VERY, 
+                            Token.MUSCULAR
+                );
+    static List<Token> nonTerminals = Arrays.asList(
+                                Token.NP, Token.NOM, 
+                                Token.DET, Token.AP, 
+                                Token.ADV, Token._A
+                            );
+    static Map<Token, List<List<Token>>> R = new HashMap<>();
+    public static void main(String[] args) {
+        List<Token> tokenString;
+        try{
+            tokenString = LexicalAnalyzer.analyze(args[0]);
+        } catch( LexicalException e ){
+            System.out.println(e.getMessage());
+            return;
+        }
+    }
+}
+
+public enum LangToken{
+    A, AN, VERY, EXTREMELY, HEAVY, ORANGE, 
+    TALL, MUSCULAR, MAN, BOOK,
+    NP, NOM, DET, AP, ADV, _A
+}
+                        </script></code>
+            </pre>
+            <p class="fragment">Indica el contenedor del árbol CNR</p>
+        </section>
+        <section data-auto-animate>
+            <p>La inicialización del árbol</p>
+            <pre class="code-wrapper" data-id="code">
+                <code data-line-numbers="14|16-20|21-25|25-30|31-32|33-35|36-40|"><script type="text/template">import java.util.*;
+public class SintaxisAnalyzer {
+    static List<Token> terminals =  Arrays.asList(
+                    Token.BOOK, Token.ORANGE, 
+                    Token.MAN, Token.TALL, 
+                    Token.HEAVY, Token.VERY, 
+                    Token.MUSCULAR
+                );
+    static List<Token> nonTerminals = Arrays.asList(
+                                Token.NP, Token.NOM, 
+                                Token.DET, Token.AP, 
+                                Token.ADV, Token._A
+                            );
+    static Map<Token, List<List<Token>>> R = new HashMap<>();
+    static{
+        R.put(Token.NP, 
+            Arrays.asList(
+                Arrays.asList(
+                    Token.DET, Token.NOM
+        )));
+        R.put(Token.NOM, Arrays.asList(
+                Arrays.asList(Token.AP, Token.NOM), 
+                Arrays.asList(Token.BOOK), 
+                Arrays.asList(Token.ORANGE), 
+                Arrays.asList(Token.MAN)));
+        R.put(Token.AP, Arrays.asList(
+                Arrays.asList(Token.ADV, Token._A), 
+                Arrays.asList(Token.HEAVY), 
+                Arrays.asList(Token.ORANGE), 
+                Arrays.asList(Token.TALL)));
+        R.put(Token.DET, Arrays.asList(
+                Arrays.asList(Token.A)));
+        R.put(Token.ADV, Arrays.asList(
+                Arrays.asList(Token.VERY), 
+                Arrays.asList(TOKEN.EXTREMELY)));
+        R.put(Token._A, Arrays.asList(
+                Arrays.asList(Token.HEAVY), 
+                Arrays.asList(Token.ORANGE), 
+                Arrays.asList(Token.TALL), 
+                Arrays.asList(Token.MUSCULAR)));
+    }
+    public static void main(String[] args) {
+        List<Token> tokenString;
+        try{
+            tokenString = LexicalAnalyzer.analyze(args[0]);
+        } catch( LexicalException e ){
+            System.out.println(e.getMessage());
+            return;
+        }
+    }
+}
+
+public enum Token{
+    A, AN, VERY, EXTREMELY, HEAVY, ORANGE, 
+    TALL, MUSCULAR, MAN, BOOK,
+    NP, NOM, DET, AP, ADV, _A
+}
+                        </script></code>
+            </pre>
+            <p class="fragment">Continuaremos a definir el algoritmo CYK</p>
+        </section>
+        <section data-auto-animate>
+            <p>Definimos el método</p>
+            <pre class="code-wrapper" data-id="code">
+                <code data-line-numbers="52-54">
+                    <script type="text/template">import java.util.*;
+public class SintaxisAnalyzer {
+    static List<Token> terminals =  Arrays.asList(
+                    Token.BOOK, Token.ORANGE, 
+                    Token.MAN, Token.TALL, 
+                    Token.HEAVY, Token.VERY, 
+                    Token.MUSCULAR
+                );
+    static List<Token> nonTerminals = Arrays.asList(
+                                Token.NP, Token.NOM, 
+                                Token.DET, Token.AP, 
+                                Token.ADV, Token._A
+                            );
+    static Map<Token, List<List<Token>>> R = new HashMap<>();
+    static{
+        R.put(Token.NP, 
+            Arrays.asList(
+                Arrays.asList(
+                    Token.DET, Token.NOM
+        )));
+        R.put(Token.NOM, Arrays.asList(
+                Arrays.asList(Token.AP, Token.NOM), 
+                Arrays.asList(Token.BOOK), 
+                Arrays.asList(Token.ORANGE), 
+                Arrays.asList(Token.MAN)));
+        R.put(Token.AP, Arrays.asList(
+                Arrays.asList(Token.ADV, Token._A), 
+                Arrays.asList(Token.HEAVY), 
+                Arrays.asList(Token.ORANGE), 
+                Arrays.asList(Token.TALL)));
+        R.put(Token.DET, Arrays.asList(
+                Arrays.asList(Token.A)));
+        R.put(Token.ADV, Arrays.asList(
+                Arrays.asList(Token.VERY), 
+                Arrays.asList(TOKEN.EXTREMELY)));
+        R.put(Token._A, Arrays.asList(
+                Arrays.asList(Token.HEAVY), 
+                Arrays.asList(Token.ORANGE), 
+                Arrays.asList(Token.TALL), 
+                Arrays.asList(Token.MUSCULAR)));
+    }
+    public static void main(String[] args) {
+        List<Token> tokenString;
+        try{
+            tokenString = LexicalAnalyzer.analyze(args[0]);
+        } catch( LexicalException e ){
+            System.out.println(e.getMessage());
+            return;
+        }
+    }
+    
+    public static 
+    Map<Integer, Map<Integer, Set<Token>>> 
+    cykParse(List<Token> w){
+                                        
+    }                                    
+}
+
+public enum Token{
+    A, AN, VERY, EXTREMELY, HEAVY, ORANGE, 
+    TALL, MUSCULAR, MAN, BOOK,
+    NP, NOM, DET, AP, ADV, _A
+}
+                    </script>
+                </code>
+            </pre>
+        </section>
+        <section data-auto-animate>
+            <p>Definamos la tabla contenedora</p>
+            <pre class="code-wrapper" data-id="code">
+                <code data-line-numbers="54-56">
+                    <script type="text/template">import java.util.*;
+public class SintaxisAnalyzer {
+    static List<Token> terminals =  Arrays.asList(
+                    Token.BOOK, Token.ORANGE, 
+                    Token.MAN, Token.TALL, 
+                    Token.HEAVY, Token.VERY, 
+                    Token.MUSCULAR
+                );
+    static List<Token> nonTerminals = Arrays.asList(
+                                Token.NP, Token.NOM, 
+                                Token.DET, Token.AP, 
+                                Token.ADV, Token._A
+                            );
+    static Map<Token, List<List<Token>>> R = new HashMap<>();
+    static{
+        R.put(Token.NP, 
+            Arrays.asList(
+                Arrays.asList(
+                    Token.DET, Token.NOM
+        )));
+        R.put(Token.NOM, Arrays.asList(
+                Arrays.asList(Token.AP, Token.NOM), 
+                Arrays.asList(Token.BOOK), 
+                Arrays.asList(Token.ORANGE), 
+                Arrays.asList(Token.MAN)));
+        R.put(Token.AP, Arrays.asList(
+                Arrays.asList(Token.ADV, Token._A), 
+                Arrays.asList(Token.HEAVY), 
+                Arrays.asList(Token.ORANGE), 
+                Arrays.asList(Token.TALL)));
+        R.put(Token.DET, Arrays.asList(
+                Arrays.asList(Token.A)));
+        R.put(Token.ADV, Arrays.asList(
+                Arrays.asList(Token.VERY), 
+                Arrays.asList(TOKEN.EXTREMELY)));
+        R.put(Token._A, Arrays.asList(
+                Arrays.asList(Token.HEAVY), 
+                Arrays.asList(Token.ORANGE), 
+                Arrays.asList(Token.TALL), 
+                Arrays.asList(Token.MUSCULAR)));
+    }
+    public static void main(String[] args) {
+        List<Token> tokenString;
+        try{
+            tokenString = LexicalAnalyzer.analyze(args[0]);
+        } catch( LexicalException e ){
+            System.out.println(e.getMessage());
+            return;
+        }
+    }
+    
+    public static Map<Integer, Map<Integer, Set<Token>>> 
+    cykParse(List<Token> w){
+        int n = w.size();
+        Map<Integer, Map<Integer, Set<Token>>> 
+        T = new HashMap();
+    }                                    
+}
+
+public enum Token{
+    A, AN, VERY, EXTREMELY, HEAVY, ORANGE, 
+    TALL, MUSCULAR, MAN, BOOK,
+    NP, NOM, DET, AP, ADV, _A
+}
+                    </script>
+                </code>
+            </pre>
+        </section>
+        <section data-auto-animate>
+            <p>Definamos el ciclo que iterarán sobre el contenido la cadena</p>
+            <pre class="code-wrapper" data-id="code">
+                <code data-line-numbers="58-64">
+                    <script type="text/template">import java.util.*;
+public class SintaxisAnalyzer {
+    static List<Token> terminals =  Arrays.asList(
+                    Token.BOOK, Token.ORANGE, 
+                    Token.MAN, Token.TALL, 
+                    Token.HEAVY, Token.VERY, 
+                    Token.MUSCULAR
+                );
+    static List<Token> nonTerminals = Arrays.asList(
+                                Token.NP, Token.NOM, 
+                                Token.DET, Token.AP, 
+                                Token.ADV, Token._A
+                            );
+    static Map<Token, List<List<Token>>> R = new HashMap<>();
+    static{
+        R.put(Token.NP, 
+            Arrays.asList(
+                Arrays.asList(
+                    Token.DET, Token.NOM
+        )));
+        R.put(Token.NOM, Arrays.asList(
+                Arrays.asList(Token.AP, Token.NOM), 
+                Arrays.asList(Token.BOOK), 
+                Arrays.asList(Token.ORANGE), 
+                Arrays.asList(Token.MAN)));
+        R.put(Token.AP, Arrays.asList(
+                Arrays.asList(Token.ADV, Token._A), 
+                Arrays.asList(Token.HEAVY), 
+                Arrays.asList(Token.ORANGE), 
+                Arrays.asList(Token.TALL)));
+        R.put(Token.DET, Arrays.asList(
+                Arrays.asList(Token.A)));
+        R.put(Token.ADV, Arrays.asList(
+                Arrays.asList(Token.VERY), 
+                Arrays.asList(TOKEN.EXTREMELY)));
+        R.put(Token._A, Arrays.asList(
+                Arrays.asList(Token.HEAVY), 
+                Arrays.asList(Token.ORANGE), 
+                Arrays.asList(Token.TALL), 
+                Arrays.asList(Token.MUSCULAR)));
+    }
+    public static void main(String[] args) {
+        List<Token> tokenString;
+        try{
+            tokenString = LexicalAnalyzer.analyze(args[0]);
+        } catch( LexicalException e ){
+            System.out.println(e.getMessage());
+            return;
+        }
+    }
+    
+    public static 
+    Map<Integer, Map<Integer, Set<Token>>>
+    cykParse(List<Token> w){
+        int n = w.size();
+        Map<Integer, Map<Integer, Set<Token>>> 
+        T = new HashMap();
+        for (int j = 0; j < n; j++) {
+            for (
+                Map.Entry<Token, List<List<Token>>> x : 
+                R.entrySet()) {
+            
+            }
+        }
+    }                                    
+}
+
+public enum Token{
+    A, AN, VERY, EXTREMELY, HEAVY, ORANGE, 
+    TALL, MUSCULAR, MAN, BOOK,
+    NP, NOM, DET, AP, ADV, _A
+}
+                    </script>
+                </code>
+            </pre>
+        </section>
+        <section data-auto-animate>
+            <p>De ahora en adelante extraeremos las reglas de la gramática...</p>
+            <pre class="code-wrapper" data-id="code">
+                <code data-line-numbers="62-63">
+                    <script type="text/template">import java.util.*;
+public class SintaxisAnalyzer {
+    static List<Token> terminals =  Arrays.asList(
+                    Token.BOOK, Token.ORANGE, 
+                    Token.MAN, Token.TALL, 
+                    Token.HEAVY, Token.VERY, 
+                    Token.MUSCULAR
+                );
+    static List<Token> nonTerminals = Arrays.asList(
+                                Token.NP, Token.NOM, 
+                                Token.DET, Token.AP, 
+                                Token.ADV, Token._A
+                            );
+    static Map<Token, List<List<Token>>> R = new HashMap<>();
+    static{
+        R.put(Token.NP, 
+            Arrays.asList(
+                Arrays.asList(
+                    Token.DET, Token.NOM
+        )));
+        R.put(Token.NOM, Arrays.asList(
+                Arrays.asList(Token.AP, Token.NOM), 
+                Arrays.asList(Token.BOOK), 
+                Arrays.asList(Token.ORANGE), 
+                Arrays.asList(Token.MAN)));
+        R.put(Token.AP, Arrays.asList(
+                Arrays.asList(Token.ADV, Token._A), 
+                Arrays.asList(Token.HEAVY), 
+                Arrays.asList(Token.ORANGE), 
+                Arrays.asList(Token.TALL)));
+        R.put(Token.DET, Arrays.asList(
+                Arrays.asList(Token.A)));
+        R.put(Token.ADV, Arrays.asList(
+                Arrays.asList(Token.VERY), 
+                Arrays.asList(TOKEN.EXTREMELY)));
+        R.put(Token._A, Arrays.asList(
+                Arrays.asList(Token.HEAVY), 
+                Arrays.asList(Token.ORANGE), 
+                Arrays.asList(Token.TALL), 
+                Arrays.asList(Token.MUSCULAR)));
+    }
+    public static void main(String[] args) {
+        List<Token> tokenString;
+        try{
+            tokenString = LexicalAnalyzer.analyze(args[0]);
+        } catch( LexicalException e ){
+            System.out.println(e.getMessage());
+            return;
+        }
+    }
+    
+    public static 
+    Map<Integer, Map<Integer, Set<Token>>>
+    cykParse(List<Token> w){
+        int n = w.size();
+        Map<Integer, Map<Integer, Set<Token>>> 
+        T = new HashMap();
+        for (int j = 0; j < n; j++) {
+            for (
+                Map.Entry<Token, List<List<Token>>> x : 
+                R.entrySet()) {
+                String lhs = x.getKey();
+                List<List<String>> rule = x.getValue();
+            }
+        }
+    }                                    
+}
+
+public enum Token{
+    A, AN, VERY, EXTREMELY, HEAVY, ORANGE, 
+    TALL, MUSCULAR, MAN, BOOK,
+    NP, NOM, DET, AP, ADV, _A
+}
+                    </script>
+                </code>
+            </pre>
+        </section>
+        <section data-auto-animate>
+            <p>Y compararemos la regla con el token de la cadena, en caso de ser igual se agregará a la tabla</p>
+            <pre class="code-wrapper" data-id="code">
+                <code data-line-numbers="63-72">
+                    <script type="text/template">import java.util.*;
+public class SintaxisAnalyzer {
+    static List<Token> terminals =  Arrays.asList(
+                    Token.BOOK, Token.ORANGE, 
+                    Token.MAN, Token.TALL, 
+                    Token.HEAVY, Token.VERY, 
+                    Token.MUSCULAR
+                );
+    static List<Token> nonTerminals = Arrays.asList(
+                                Token.NP, Token.NOM, 
+                                Token.DET, Token.AP, 
+                                Token.ADV, Token._A
+                            );
+    static Map<Token, List<List<Token>>> R = new HashMap<>();
+    static{
+        R.put(Token.NP, 
+            Arrays.asList(
+                Arrays.asList(
+                    Token.DET, Token.NOM
+        )));
+        R.put(Token.NOM, Arrays.asList(
+                Arrays.asList(Token.AP, Token.NOM), 
+                Arrays.asList(Token.BOOK), 
+                Arrays.asList(Token.ORANGE), 
+                Arrays.asList(Token.MAN)));
+        R.put(Token.AP, Arrays.asList(
+                Arrays.asList(Token.ADV, Token._A), 
+                Arrays.asList(Token.HEAVY), 
+                Arrays.asList(Token.ORANGE), 
+                Arrays.asList(Token.TALL)));
+        R.put(Token.DET, Arrays.asList(
+                Arrays.asList(Token.A)));
+        R.put(Token.ADV, Arrays.asList(
+                Arrays.asList(Token.VERY), 
+                Arrays.asList(TOKEN.EXTREMELY)));
+        R.put(Token._A, Arrays.asList(
+                Arrays.asList(Token.HEAVY), 
+                Arrays.asList(Token.ORANGE), 
+                Arrays.asList(Token.TALL), 
+                Arrays.asList(Token.MUSCULAR)));
+    }
+    public static void main(String[] args) {
+        List<Token> tokenString;
+        try{
+            tokenString = LexicalAnalyzer.analyze(args[0]);
+        } catch( LexicalException e ){
+            System.out.println(e.getMessage());
+            return;
+        }
+    }
+    
+    public static 
+    Map<Integer, Map<Integer, Set<Token>>> 
+    cykParse(List<Token> w){
+        int n = w.size();
+        Map<Integer, Map<Integer, Set<Token>>> 
+        T = new HashMap();
+        for (int j = 0; j < n; j++) {
+            for (
+                Map.Entry<Token, List<List<Token>>> x : 
+                R.entrySet()) {
+                String lhs = x.getKey();
+                List<List<String>> rule = x.getValue();
+                for (List<String> rhs : rule) {
+                    if (rhs.size() == 1 && 
+                        (rhs.get(0) == w.get(j))) {
+                        T.computeIfAbsent(j, 
+                            k -> new HashMap<>())
+                        .computeIfAbsent(j, 
+                            k -> new HashSet<>()).
+                        add(lhs);
+                    }
+                }
+            }
+        }
+    }                                    
+}
+
+public enum Token{
+    A, AN, VERY, EXTREMELY, HEAVY, ORANGE, 
+    TALL, MUSCULAR, MAN, BOOK,
+    NP, NOM, DET, AP, ADV, _A
+}
+                    </script>
+                </code>
+            </pre>
+        </section>
+        <section data-auto-animate>
+            <p class="fragment">El ciclo anterior compete a la generación del lado derecho del árbol...</p>
+            <p class="fragment">Ahora indicaremos lo mismo para la generación del lado izquierdo del árbol</p>
+            <pre class="code-wrapper" data-id="code">
+                <code data-line-numbers="63-72|74-76|78-94">
+                    <script type="text/template">import java.util.*;
+public class SintaxisAnalyzer {
+    static List<Token> terminals =  Arrays.asList(
+                    Token.BOOK, Token.ORANGE, 
+                    Token.MAN, Token.TALL, 
+                    Token.HEAVY, Token.VERY, 
+                    Token.MUSCULAR
+                );
+    static List<Token> nonTerminals = Arrays.asList(
+                                Token.NP, Token.NOM, 
+                                Token.DET, Token.AP, 
+                                Token.ADV, Token._A
+                            );
+    static Map<Token, List<List<Token>>> R = new HashMap<>();
+    static{
+        R.put(Token.NP, 
+            Arrays.asList(
+                Arrays.asList(
+                    Token.DET, Token.NOM
+        )));
+        R.put(Token.NOM, Arrays.asList(
+                Arrays.asList(Token.AP, Token.NOM), 
+                Arrays.asList(Token.BOOK), 
+                Arrays.asList(Token.ORANGE), 
+                Arrays.asList(Token.MAN)));
+        R.put(Token.AP, Arrays.asList(
+                Arrays.asList(Token.ADV, Token._A), 
+                Arrays.asList(Token.HEAVY), 
+                Arrays.asList(Token.ORANGE), 
+                Arrays.asList(Token.TALL)));
+        R.put(Token.DET, Arrays.asList(
+                Arrays.asList(Token.A)));
+        R.put(Token.ADV, Arrays.asList(
+                Arrays.asList(Token.VERY), 
+                Arrays.asList(TOKEN.EXTREMELY)));
+        R.put(Token._A, Arrays.asList(
+                Arrays.asList(Token.HEAVY), 
+                Arrays.asList(Token.ORANGE), 
+                Arrays.asList(Token.TALL), 
+                Arrays.asList(Token.MUSCULAR)));
+    }
+    public static void main(String[] args) {
+        List<Token> tokenString;
+        try{
+            tokenString = LexicalAnalyzer.analyze(args[0]);
+        } catch( LexicalException e ){
+            System.out.println(e.getMessage());
+            return;
+        }
+    }
+    
+    public static 
+    Map<Integer, Map<Integer, Set<Token>>> 
+    cykParse(List<Token> w){
+        int n = w.size();
+        Map<Integer, Map<Integer, Set<Token>>> 
+        T = new HashMap();
+        for (int j = 0; j < n; j++) {
+            for (
+                Map.Entry<Token, List<List<Token>>> x : 
+                R.entrySet()) {
+                String lhs = x.getKey();
+                List<List<String>> rule = x.getValue();
+                for (List<String> rhs : rule) {
+                    if (rhs.size() == 1 && 
+                        (rhs.get(0) == w.get(j))) {
+                        T.computeIfAbsent(j, 
+                            k -> new HashMap<>())
+                        .computeIfAbsent(j, 
+                            k -> new HashSet<>()).
+                        add(lhs);
+                    }
+                }
+            }
+            for (int i = j; i >= 0; i--) {
+                for (int k = i; k <= j; k++) {
+                    for (
+                    Map.Entry<String, List<List<String>>> x 
+                        : R.entrySet()) {
+                        String lhs = x.getKey();
+                        List<List<String>> rule = 
+                                            x.getValue();
+
+                        for (List<String> rhs : rule) {
+                            if (rhs.size() == 2 && 
+                                T.get(i)
+                                .get(k)
+                                .contains(rhs.get(0)) && 
+                                T.get(k + 1)
+                                .get(j)
+                                .contains(rhs.get(1))) {
+                                    T.get(i).get(j).add(lhs);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }                                    
+}
+
+public enum Token{
+    A, AN, VERY, EXTREMELY, HEAVY, ORANGE, 
+    TALL, MUSCULAR, MAN, BOOK,
+    NP, NOM, DET, AP, ADV, _A
+}
+                    </script>
+                </code>
+            </pre>
+        </section>
+        <section data-auto-animate>
+            <p>Finalmente verificaremos si pertenece a la gramática</p>
+            <pre class="code-wrapper" data-id="code">
+                <code data-line-numbers="78-94|99-103">
+                    <script type="text/template">import java.util.*;
+                    public class SintaxisAnalyzer {
+                    static List<Token> terminals =  Arrays.asList(
+                    Token.BOOK, Token.ORANGE, 
+                    Token.MAN, Token.TALL, 
+                    Token.HEAVY, Token.VERY, 
+                    Token.MUSCULAR
+                );
+    static List<Token> nonTerminals = Arrays.asList(
+                                Token.NP, Token.NOM, 
+                                Token.DET, Token.AP, 
+                                Token.ADV, Token._A
+                            );
+    static Map<Token, List<List<Token>>> R = new HashMap<>();
+    static{
+        R.put(Token.NP, 
+            Arrays.asList(
+                Arrays.asList(
+                    Token.DET, Token.NOM
+        )));
+        R.put(Token.NOM, Arrays.asList(
+                Arrays.asList(Token.AP, Token.NOM), 
+                Arrays.asList(Token.BOOK), 
+                Arrays.asList(Token.ORANGE), 
+                Arrays.asList(Token.MAN)));
+        R.put(Token.AP, Arrays.asList(
+                Arrays.asList(Token.ADV, Token._A), 
+                Arrays.asList(Token.HEAVY), 
+                Arrays.asList(Token.ORANGE), 
+                Arrays.asList(Token.TALL)));
+        R.put(Token.DET, Arrays.asList(
+                Arrays.asList(Token.A)));
+        R.put(Token.ADV, Arrays.asList(
+                Arrays.asList(Token.VERY), 
+                Arrays.asList(TOKEN.EXTREMELY)));
+        R.put(Token._A, Arrays.asList(
+                Arrays.asList(Token.HEAVY), 
+                Arrays.asList(Token.ORANGE), 
+                Arrays.asList(Token.TALL), 
+                Arrays.asList(Token.MUSCULAR)));
+    }
+    public static void main(String[] args) {
+        List<Token> tokenString;
+        try{
+            tokenString = LexicalAnalyzer.analyze(args[0]);
+        } catch( LexicalException e ){
+            System.out.println(e.getMessage());
+            return;
+        }
+    }
+    
+    public static 
+    Map<Integer, Map<Integer, Set<Token>>> 
+    cykParse(List<Token> w){
+        int n = w.size();
+        Map<Integer, Map<Integer, Set<Token>>> 
+        T = new HashMap();
+        for (int j = 0; j < n; j++) {
+            for (
+                Map.Entry<Token, List<List<Token>>> x : 
+                R.entrySet()) {
+                String lhs = x.getKey();
+                List<List<String>> rule = x.getValue();
+                for (List<String> rhs : rule) {
+                    if (rhs.size() == 1 && 
+                        (rhs.get(0) == w.get(j))) {
+                        T.computeIfAbsent(j, 
+                            k -> new HashMap<>())
+                        .computeIfAbsent(j, 
+                            k -> new HashSet<>()).
+                        add(lhs);
+                    }
+                }
+            }
+            for (int i = j; i >= 0; i--) {
+                for (int k = i; k <= j; k++) {
+                    for (
+                    Map.Entry<String, List<List<String>>> x 
+                        : R.entrySet()) {
+                        String lhs = x.getKey();
+                        List<List<String>> rule = 
+                                            x.getValue();
+
+                        for (List<String> rhs : rule) {
+                            if (rhs.size() == 2 && 
+                                T.get(i)
+                                .get(k)
+                                .contains(rhs.get(0)) && 
+                                T.get(k + 1)
+                                .get(j)
+                                .contains(rhs.get(1))) {
+                                    T.get(i).get(j).add(lhs);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if (T.get(0).get(n - 1).size() != 0)
+            return T;
+        else
+            throw SintaxisException(
+                "No pertenece a la gramática");
+    }                                    
+}
+
+public enum Token{
+    A, AN, VERY, EXTREMELY, HEAVY, ORANGE, 
+    TALL, MUSCULAR, MAN, BOOK,
+    NP, NOM, DET, AP, ADV, _A
+}
+                    </script>
+                </code>
+            </pre>
+        </section>
+        <section data-auto-animate>
+            <p>Y agregamos a la función main</p>
+            <pre class="code-wrapper" data-id="code">
+                <code data-line-numbers="|48,52-56">
+                    <script type="text/template">import java.util.*;
+public class SintaxisAnalyzer {
+    static List<Token> terminals =  Arrays.asList(
+                    Token.BOOK, Token.ORANGE, 
+                    Token.MAN, Token.TALL, 
+                    Token.HEAVY, Token.VERY, 
+                    Token.MUSCULAR
+                );
+    static List<Token> nonTerminals = Arrays.asList(
+                                Token.NP, Token.NOM, 
+                                Token.DET, Token.AP, 
+                                Token.ADV, Token._A
+                            );
+    static Map<Token, List<List<Token>>> R = new HashMap<>();
+    static{
+        R.put(Token.NP, 
+            Arrays.asList(
+                Arrays.asList(
+                    Token.DET, Token.NOM
+        )));
+        R.put(Token.NOM, Arrays.asList(
+                Arrays.asList(Token.AP, Token.NOM), 
+                Arrays.asList(Token.BOOK), 
+                Arrays.asList(Token.ORANGE), 
+                Arrays.asList(Token.MAN)));
+        R.put(Token.AP, Arrays.asList(
+                Arrays.asList(Token.ADV, Token._A), 
+                Arrays.asList(Token.HEAVY), 
+                Arrays.asList(Token.ORANGE), 
+                Arrays.asList(Token.TALL)));
+        R.put(Token.DET, Arrays.asList(
+                Arrays.asList(Token.A)));
+        R.put(Token.ADV, Arrays.asList(
+                Arrays.asList(Token.VERY), 
+                Arrays.asList(TOKEN.EXTREMELY)));
+        R.put(Token._A, Arrays.asList(
+                Arrays.asList(Token.HEAVY), 
+                Arrays.asList(Token.ORANGE), 
+                Arrays.asList(Token.TALL), 
+                Arrays.asList(Token.MUSCULAR)));
+    }
+    public static void main(String[] args) {
+        List<Token> tokenString;
+        Map<Integer, Map<Integer, Set<Token>>> 
+        T = new HashMap();
+        try{
+            tokenString = LexicalAnalyzer.analyze(args[0]);
+            T = SintaxisAnalyzer.cykParse(tokenString);
+        } catch( LexicalException e ){
+            System.out.println(e.getMessage());
+            return;
+        } catch( SintaxisException e){
+            System.out.println(e.getMessage());
+            return;
+        }
+    }
+    
+    public static 
+    Map<Integer, Map<Integer, Set<Token>>> 
+    cykParse(List<Token> w){
+        int n = w.size();
+        Map<Integer, Map<Integer, Set<Token>>> 
+        T = new HashMap();
+        for (int j = 0; j < n; j++) {
+            for (
+                Map.Entry<Token, List<List<Token>>> x : 
+                R.entrySet()) {
+                String lhs = x.getKey();
+                List<List<String>> rule = x.getValue();
+                for (List<String> rhs : rule) {
+                    if (rhs.size() == 1 && 
+                        (rhs.get(0) == w.get(j))) {
+                        T.computeIfAbsent(j, 
+                            k -> new HashMap<>())
+                        .computeIfAbsent(j, 
+                            k -> new HashSet<>()).
+                        add(lhs);
+                    }
+                }
+            }
+            for (int i = j; i >= 0; i--) {
+                for (int k = i; k <= j; k++) {
+                    for (
+                    Map.Entry<String, List<List<String>>> x 
+                        : R.entrySet()) {
+                        String lhs = x.getKey();
+                        List<List<String>> rule = 
+                                            x.getValue();
+
+                        for (List<String> rhs : rule) {
+                            if (rhs.size() == 2 && 
+                                T.get(i)
+                                .get(k)
+                                .contains(rhs.get(0)) && 
+                                T.get(k + 1)
+                                .get(j)
+                                .contains(rhs.get(1))) {
+                                    T.get(i).get(j).add(lhs);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if (T.get(0).get(n - 1).size() != 0)
+            return T;
+        else
+            throw SintaxisException(
+                "No pertenece a la gramática");
+    }                                    
+}
+
+public enum Token{
+    A, AN, VERY, EXTREMELY, HEAVY, ORANGE, 
+    TALL, MUSCULAR, MAN, BOOK,
+    NP, NOM, DET, AP, ADV, _A
+}
+                    </script>
+                </code>
+            </pre>
+        </section>
+        <section data-auto-animate>
+            <p>A partir de la tabla de construye el árbol que puede ser suministrado a etapas posteriores
+                en la compilación para llevar el proceso</p>
+        </section>
+        <section data-auto-animate>
+            <h2>Fin</h2>
+        </section>
+    </div>
+</div>
+
+<script src="dist/reveal.js"></script>
+<script src="plugin/notes/notes.js"></script>
+<script src="plugin/markdown/markdown.js"></script>
+<script src="plugin/highlight/highlight.js"></script>
+<script src="plugin/math/math.js"></script>
+<script>
+    // More info about initialization & config:
+    // - https://revealjs.com/initialization/
+    // - https://revealjs.com/config/
+    Reveal.initialize( {
+        highlight: {
+            languages: ["Java"]
+        },
+        hash: true,
+        // Learn about plugins: https://revealjs.com/plugins/
+        plugins: [RevealMarkdown, RevealHighlight, RevealNotes, RevealMath.KaTeX, RevealLoadContent, RevealAnimate, {
+            src: 'node_modules/revealjs-animated/dist/revealjs-animated.js',
+            async: true
+        }, RevealMermaid]
+    } );
+</script>
+</body>
 </html>
