@@ -1,3 +1,16 @@
+# ¿Como ver la presentación proyecto?
+Requiere NPM y Node.js en la version 20.0.0 o superior. Situandose en la carpeta del proyecto, ejecutar el siguiente comando:
+```bash
+npm install
+```
+Una vez instaladas las dependencias, ejecutar el siguiente comando:
+```bash
+npm start
+```
+<p>
+    Se abrirá una ventana en el navegador con la presentación.
+</p>
+## Acerca de lo utilizado en la presentación
 <p align="center">
   <a href="https://revealjs.com">
   <img src="https://hakim-static.s3.amazonaws.com/reveal-js/logo/v1/reveal-black-text-sticker.png" alt="reveal.js" width="500">
